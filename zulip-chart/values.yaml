@@ -1,5 +1,5 @@
-hostname: zulip.ingressive.dev
-adminEmail: admin@ingressive.dev
+hostname: zulip.ingressive.dev # Override for your deployment domain.
+adminEmail: admin@ingressive.dev # Override for your deployment administrator email.
 
 images:
   zulip: ghcr.io/zulip/zulip-server:12.0-0
