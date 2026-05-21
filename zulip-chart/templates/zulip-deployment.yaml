@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zulip.fullname" . }}
+  labels:
+    {{- include "zulip.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zulip
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "zulip.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: zulip
+  template:
+    metadata:
+      labels:
+        {{- include "zulip.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: zulip
+    spec:
+      containers:
+        - name: zulip
+          image: {{ .Values.images.zulip }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: SETTING_EXTERNAL_HOST
+              value: {{ .Values.hostname | quote }}
+            - name: SETTING_ZULIP_ADMINISTRATOR
+              value: {{ .Values.adminEmail | quote }}
+            - name: TRUST_GATEWAY_IP
+              value: "true"
+            - name: CERTIFICATES
+              value: ""
+            - name: SETTING_REMOTE_POSTGRES_HOST
+              value: {{ include "zulip.componentName" (dict "root" . "component" "postgres") | quote }}
+            - name: SETTING_REMOTE_POSTGRES_PORT
+              value: "5432"
+            - name: CONFIG_postgresql__database_name
+              value: "zulip"
+            - name: CONFIG_postgresql__database_user
+              value: "zulip"
+            - name: SETTING_REDIS_HOST
+              value: {{ include "zulip.componentName" (dict "root" . "component" "redis") | quote }}
+            - name: SETTING_REDIS_PORT
+              value: "6379"
+            - name: SETTING_MEMCACHED_LOCATION
+              value: {{ printf "%s:11211" (include "zulip.componentName" (dict "root" . "component" "memcached")) | quote }}
+            - name: SETTING_RABBITMQ_HOST
+              value: {{ include "zulip.componentName" (dict "root" . "component" "rabbitmq") | quote }}
+            - name: SETTING_RABBITMQ_PORT
+              value: "5672"
+            - name: SETTING_RABBITMQ_USERNAME
+              value: "zulip"
+            - name: SECRETS_secret_key
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: secret_key
+            - name: SECRETS_postgres_password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: postgres_password
+            - name: SECRETS_rabbitmq_password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: rabbitmq_password
+            - name: SECRETS_redis_password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: redis_password
+            - name: SECRETS_avatar_salt
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: avatar_salt
+            - name: SECRETS_shared_secret
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: shared_secret
+            - name: SECRETS_initial_password_salt
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: initial_password_salt
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.hostname | quote }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.hostname | quote }}
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.hostname | quote }}
+          resources:
+            {{- toYaml .Values.resources.zulip | nindent 12 }}
+          volumeMounts:
+            - name: uploads
+              mountPath: /data/uploads
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: {{ include "zulip.componentName" (dict "root" . "component" "uploads") }}

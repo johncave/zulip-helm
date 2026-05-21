@@ -1,0 +1,41 @@
+hostname: zulip.ingressive.dev # Override for your deployment domain.
+adminEmail: admin@ingressive.dev # Override for your deployment administrator email.
+
+images:
+  zulip: ghcr.io/zulip/zulip-server:12.0-0
+  postgres: zulip/zulip-postgresql:14
+  redis: redis:7.4.9-alpine
+  memcached: memcached:1.6.42-alpine
+  rabbitmq: rabbitmq:3.13.7-management-alpine
+
+secrets:
+  existingSecret: zulip-secrets
+
+persistence:
+  storageClass: ""
+  postgres:
+    size: 5Gi
+  uploads:
+    size: 5Gi
+
+resources:
+  zulip:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+  postgres:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  redis:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  memcached:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  rabbitmq:
+    requests:
+      cpu: 100m
+      memory: 128Mi
