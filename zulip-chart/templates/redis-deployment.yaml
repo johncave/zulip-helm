@@ -24,7 +24,7 @@ spec:
           command:
             - sh
             - -ec
-            - exec redis-server --requirepass "$REDIS_PASSWORD"
+            - exec redis-server --requirepass "$REDIS_PASSWORD" --protected-mode yes
           env:
             - name: REDIS_PASSWORD
               valueFrom:

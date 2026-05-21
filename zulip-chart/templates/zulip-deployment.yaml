@@ -107,6 +107,13 @@ spec:
                   value: {{ .Values.hostname | quote }}
             failureThreshold: 30
             periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.hostname | quote }}
           resources:
             {{- toYaml .Values.resources.zulip | nindent 12 }}
           volumeMounts:
