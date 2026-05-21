@@ -1,2 +1,3 @@
 # zulip-helm
-Helm chart for Zulip, since the default had issues
+
+This repository contains the Helm chart in `/zulip-chart`.

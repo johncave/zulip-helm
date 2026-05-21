@@ -1,0 +1,6 @@
+apiVersion: v2
+name: zulip
+description: Helm chart for deploying Zulip with bundled support services
+type: application
+version: 0.1.0
+appVersion: "12.0-0"

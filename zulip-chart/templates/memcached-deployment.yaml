@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zulip.componentName" (dict "root" . "component" "memcached") }}
+  labels:
+    {{- include "zulip.labels" . | nindent 4 }}
+    app.kubernetes.io/component: memcached
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "zulip.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: memcached
+  template:
+    metadata:
+      labels:
+        {{- include "zulip.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: memcached
+    spec:
+      containers:
+        - name: memcached
+          image: {{ .Values.images.memcached }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: memcached
+              containerPort: 11211
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources.memcached | nindent 12 }}
